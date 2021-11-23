@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 
@@ -17,15 +18,90 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.indigo,
       ),
-      home: const MyHomePage(title: 'Math Quiz'),
+      home: const MyLoginPage(title: 'Math Quiz'),
+    );
+  }
+}
+
+class MyLoginPage extends StatefulWidget {
+  const MyLoginPage({Key? key, required this.title}) : super(key: key);
+
+  final String title;
+
+  @override
+  State<MyLoginPage> createState() => _MyLoginPageState();
+}
+
+class _MyLoginPageState extends State<MyLoginPage> {
+  final controller = TextEditingController();
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Home Page"),
+      ),
+      body: Center(
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    "Your name: ",
+                    style: Theme.of(context).textTheme.headline4,
+                  ),
+                  SizedBox(
+                    height: 50,
+                    width: 200,
+                    child: TextField(
+                      controller: controller,
+                      textInputAction: TextInputAction.done,
+                      style: const TextStyle(
+                        fontSize: 20,
+                      ),
+                      decoration: const InputDecoration(
+                        counterText: "",
+                        border: OutlineInputBorder(),
+                        labelText: '',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ]),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => MyHomePage(
+                        username: controller.text,
+                        title: 'Math Quiz',
+                      )));
+        },
+        tooltip: 'Send Answer',
+        child: const Icon(Icons.arrow_forward),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  const MyHomePage({Key? key, required this.title, required this.username})
+      : super(key: key);
 
   final String title;
+  final String username;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -61,14 +137,17 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> score() async {
-    var url =
-        Uri.parse('https://7c2bad50.us-south.apigw.appdomain.cloud/api/placar');
-    var response = await http.post(url,
-        headers: <String, String>{
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json'
-        },
-        body: 'usuario:fulano');
+    String user = widget.username;
+    var response = await http.post(
+      Uri.parse('https://7c2bad50.us-south.apigw.appdomain.cloud/api/placar'),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: jsonEncode(<String, String>{
+        'usuario': user,
+      }),
+    );
     if (response.statusCode == 200) {
       // ignore: avoid_print
       print(response.body);
